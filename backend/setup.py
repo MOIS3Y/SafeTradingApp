@@ -1,7 +1,7 @@
 from trade_terminal import create_app
 from trade_terminal import db, ma
 from trade_terminal import User, TradeProfile, Exchange
-from trade_terminal.exmo import Currency, Pair, UserOrder
+from trade_terminal.exmo import ExmoCurrency, ExmoPair, ExmoOrder
 
 
 app = create_app()
@@ -25,9 +25,9 @@ def make_shell_context():
         'User': User,
         'TradeProfile': TradeProfile,
         'Exchange': Exchange,
-        'Currency': Currency,
-        'Pair': Pair,
-        'UserOrder': UserOrder
+        'ExmoCurrency': ExmoCurrency,
+        'ExmoPair': ExmoPair,
+        'ExmoOrder': ExmoOrder
         }  # Add more variables {name:variable}
 
 

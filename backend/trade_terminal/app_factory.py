@@ -20,13 +20,13 @@ def create_app():  # ! OR Config for production
 
     # *Add click commands
     from commands import (
-        create_exchange,
+        create_exchanges,
         create_trade_profiles,
         create_users,
-        create_pair)
+        create_pairs)
     app.cli.add_command(create_users)
-    app.cli.add_command(create_exchange)
-    app.cli.add_command(create_pair)
+    app.cli.add_command(create_exchanges)
+    app.cli.add_command(create_pairs)
     app.cli.add_command(create_trade_profiles)
 
     # API Blueprint

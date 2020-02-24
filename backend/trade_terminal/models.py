@@ -7,7 +7,10 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True)
     password_hash = db.Column(db.String(512))
-    trade_terminal_profile = db.relationship(
+
+    # ! Relationship
+
+    trade_profiles = db.relationship(
         'TradeProfile', backref='user', lazy=True)
 
     def set_password(self, password):
@@ -28,8 +31,12 @@ class TradeProfile(db.Model):
     name = db.Column(db.String(12))
     secret_key = db.Column(db.String(128))
     public_key = db.Column(db.String(128))
-    user_orders = db.relationship(
-        'UserOrder', backref='trade_profile', lazy=True)
+
+    # ! Relationship
+
+    # * Exmo:
+    exmo_orders = db.relationship(
+        'ExmoOrder', backref='trade_profile', lazy=True)
 
     def __repr__(self):
         return '<Name: {}>'.format(self.name)
@@ -39,12 +46,17 @@ class Exchange(db.Model):
     """docstring for Exchange"""
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(128))
-    trade_profile = db.relationship(
+
+    # ! Relationship
+
+    trade_profiles = db.relationship(
         'TradeProfile', backref='exchange', lazy=True)
-    currency = db.relationship(
-        'Currency', backref='exchange', lazy=True)
-    pair = db.relationship(
-        'Pair', backref='exchange', lazy=True)
+
+    # * Exmo:
+    exmo_currencies = db.relationship(
+        'ExmoCurrency', backref='exchange', lazy=True)
+    exmo_pairs = db.relationship(
+        'ExmoPair', backref='exchange', lazy=True)
 
     def __repr__(self):
         return '<Exchange {}>'.format(self.name)

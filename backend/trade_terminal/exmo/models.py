@@ -4,7 +4,7 @@ from trade_terminal import db, TradeProfile
 from .exmo import ExmoAPI
 
 
-class Currency(db.Model):
+class ExmoCurrency(db.Model):
     """docstring for Currency"""
     id = db.Column(db.Integer, primary_key=True)
     exchange_id = db.Column(db.Integer, db.ForeignKey('exchange.id'))
@@ -14,12 +14,12 @@ class Currency(db.Model):
         return '<Currency {}>'.format(self.ticker)
 
 
-class Pair(db.Model):
+class ExmoPair(db.Model):
     """docstring for PairSettings"""
     id = db.Column(db.Integer, primary_key=True)
     exchange_id = db.Column(db.Integer, db.ForeignKey('exchange.id'))
     ticker = db.Column(db.String(24))
-    orders = db.relationship('UserOrder', backref='pair', lazy=True)
+    orders = db.relationship('ExmoOrder', backref='pair', lazy=True)
 
     # * Exchange pair_settings:
     min_quantity = db.Column(db.Float)  # minimum quantity per order
@@ -47,11 +47,11 @@ class Pair(db.Model):
         return '<Pair {}>'.format(self.ticker)
 
 
-class UserOrder(db.Model):
+class ExmoOrder(db.Model):
     """docstring for UserOrder"""
     id = db.Column(db.Integer, primary_key=True)
     trade_profile_id = db.Column(db.Integer, db.ForeignKey('trade_profile.id'))
-    pair_id = db.Column(db.Integer, db.ForeignKey('pair.id'))
+    pair_id = db.Column(db.Integer, db.ForeignKey('exmo_pair.id'))
     status = db.Column(db.String(24))  # stop-loss||take-profit||open||cancel
 
     # * Exchange order settings:
@@ -65,14 +65,14 @@ class UserOrder(db.Model):
 
     def __init__(self, trade_profile_id, ticker, status, order_id):
         self.trade_profile_id = trade_profile_id
-        self.pair_id = Pair.query.filter_by(ticker=ticker).first().id
+        self.pair_id = ExmoPair.query.filter_by(ticker=ticker).first().id
         self.status = status
         self.order_id = order_id
         self.get_order_params(order_id)
 
     def get_order_params(self, order_id):
         trade_profile = TradeProfile.query.get(self.trade_profile_id)
-        current_pair = Pair.query.get(self.pair_id)
+        current_pair = ExmoPair.query.get(self.pair_id)
         user_open_orders = ExmoAPI(
             trade_profile.public_key,
             trade_profile.secret_key).user_open_orders()
@@ -87,7 +87,7 @@ class UserOrder(db.Model):
                 self.amount = item['amount']
 
     def __repr__(self):
-        return '<UserOrder_id {}>'.format(self.order_id)
+        return '<ExmoOrder_id {}>'.format(self.order_id)
 
 
 # class UserTrades(db.Model):
