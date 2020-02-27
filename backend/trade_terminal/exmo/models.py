@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from trade_terminal import db, TradeProfile
-from .exmo import ExmoAPI
+from trade_terminal.exmo import ExmoAPI
 
 
 class ExmoCurrency(db.Model):
@@ -63,6 +63,10 @@ class ExmoOrder(db.Model):
     quantity = db.Column(db.Float)  # quantity per order
     amount = db.Column(db.Float)  # order amount
 
+    # ! Relationship
+
+    trades = db.relationship('ExmoOrderTrades', backref='order', lazy=True)
+
     def __init__(self, trade_profile_id, ticker, status, order_id):
         self.trade_profile_id = trade_profile_id
         self.pair_id = ExmoPair.query.filter_by(ticker=ticker).first().id
@@ -90,34 +94,16 @@ class ExmoOrder(db.Model):
         return '<ExmoOrder_id {}>'.format(self.order_id)
 
 
-# class UserTrades(db.Model):
-#     """docstring for UserOpenUserOrder"""
-#     id = db.Column(db.Integer, primary_key=True)
-#     trade_profile_id = db.Column(db.Integer, db.ForeignKey('trade_profile'))
-#     pair_id = db.Column(db.Integer, db.ForeignKey('pair'))
-#     ticker = db.Column(db.String(24))
-#     # Exchange order settings:
-#     trade_terminal_id = db.Column(db.Integer)  # transaction id
-#     date = db.Column(db.DateTime)  # transaction date and time
-#     order_type = db.Column(db.String(24))  # (market)_buy||sell_(total)
-#     order_id = db.Column(db.Integer)  # user order id
-#     quantity = db.Column(db.Float)  # quantity per transaction
-#     price = db.Column(db.Float)  # transaction price
-#     amount = db.Column(db.Float)  # transaction amount
+class ExmoOrderTrades(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    exmo_order_id = db.Column(db.Integer, db.ForeignKey('exmo_order.id'))
 
-
-# class Transaction(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     trade_profile_id = db.Column(db.Integer, db.ForeignKey('trade_profile'))
-#     pair = db.Column(db.String(24))
-#     # Exchange order settings:
-#     trade_terminal_id = db.Column(db.Integer)  # transaction id
-#     date = db.Column(db.DateTime)  # transaction date and time
-#     order_type = db.Column(db.String(24))  # (market)_buy||sell_(total)
-#     order_id = db.Column(db.Integer)  # user order id
-#     quantity = db.Column(db.Float)  # quantity per transaction
-#     price = db.Column(db.Float)  # transaction price
-#     amount = db.Column(db.Float)  # transaction amount
+    # * Exchange order settings:
+    trade_id = db.Column(db.String(24))  # transaction id
+    date = db.Column(db.DateTime)  # transaction date and time
+    quantity = db.Column(db.Float)  # quantity per transaction
+    price = db.Column(db.Float)  # transaction price
+    amount = db.Column(db.Float)  # transaction amount
 
 
 # class Deal(db.Model):

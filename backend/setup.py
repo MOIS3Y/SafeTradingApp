@@ -1,6 +1,7 @@
 from trade_terminal import create_app
 from trade_terminal import db, ma
-from trade_terminal import User, TradeProfile, Exchange
+from trade_terminal import TradeProfile, Exchange
+from trade_terminal.auth import User
 from trade_terminal.exmo import ExmoCurrency, ExmoPair, ExmoOrder
 
 

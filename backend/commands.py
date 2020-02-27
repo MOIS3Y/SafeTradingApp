@@ -3,7 +3,8 @@ import click
 from flask.cli import with_appcontext
 
 from trade_terminal import db
-from trade_terminal import User, TradeProfile, Exchange
+from trade_terminal import TradeProfile, Exchange
+from trade_terminal.auth import User
 from trade_terminal.exmo import ExmoPair
 
 

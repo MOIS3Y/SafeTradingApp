@@ -10,7 +10,13 @@ import requests
 from pathlib import Path  # !Only Python 3.4+(Standart library)
 from dotenv import load_dotenv
 
+from flask import Blueprint
 
+# * Create Blueprint
+bp = Blueprint('exmo', __name__)
+
+
+# * Search .env file for this script work
 path = Path(os.path.abspath(os.path.dirname(__file__)))
 basedir = path.parents[2-1]  # * Level UP 2 directory
 load_dotenv(os.path.join(basedir, '.env'))

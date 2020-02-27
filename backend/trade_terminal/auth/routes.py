@@ -1,5 +1,5 @@
 from flask import jsonify
-from trade_terminal.api import bp
+from trade_terminal.auth import bp
 
 
 @bp.route('/ping', methods=['GET'])

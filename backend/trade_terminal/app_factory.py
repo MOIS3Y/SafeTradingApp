@@ -13,7 +13,7 @@ def create_app():  # ! OR Config for production
     app.config.from_object(DevelopmentConfig)
 
     # *Init extensions
-    from trade_terminal import db, ma, migrate
+    from trade_terminal import db, migrate, ma
     db.init_app(app)
     migrate.init_app(app, db)
     ma.init_app(app)
@@ -29,8 +29,12 @@ def create_app():  # ! OR Config for production
     app.cli.add_command(create_pairs)
     app.cli.add_command(create_trade_profiles)
 
-    # API Blueprint
-    from .api import bp as api_bp
-    app.register_blueprint(api_bp, url_prefix='/api')
+    # Auth Blueprint
+    from .auth import bp as auth_bp
+    app.register_blueprint(auth_bp, url_prefix='/api/authentication')
+
+    # Exmo Exchange Blueprint
+    from .exmo import bp as exmo_bp
+    app.register_blueprint(exmo_bp, url_prefix='/api/exmo/v1')
 
     return app
