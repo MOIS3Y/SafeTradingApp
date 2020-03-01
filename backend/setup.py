@@ -1,3 +1,4 @@
+from trade_terminal import guard
 from trade_terminal import create_app
 from trade_terminal import db, ma
 from trade_terminal import TradeProfile, Exchange
@@ -28,7 +29,8 @@ def make_shell_context():
         'Exchange': Exchange,
         'ExmoCurrency': ExmoCurrency,
         'ExmoPair': ExmoPair,
-        'ExmoOrder': ExmoOrder
+        'ExmoOrder': ExmoOrder,
+        'guard': guard
         }  # Add more variables {name:variable}
 
 

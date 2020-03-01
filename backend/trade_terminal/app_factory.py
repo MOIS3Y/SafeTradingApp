@@ -13,10 +13,13 @@ def create_app():  # ! OR Config for production
     app.config.from_object(DevelopmentConfig)
 
     # *Init extensions
-    from trade_terminal import db, migrate, ma
+    from trade_terminal import db, migrate, ma, guard, mail
+    from trade_terminal.auth import User
     db.init_app(app)
     migrate.init_app(app, db)
     ma.init_app(app)
+    guard.init_app(app, User)
+    mail.init_app(app)
 
     # *Add click commands
     from commands import (
@@ -31,10 +34,14 @@ def create_app():  # ! OR Config for production
 
     # Auth Blueprint
     from .auth import bp as auth_bp
-    app.register_blueprint(auth_bp, url_prefix='/api/authentication')
+    app.register_blueprint(auth_bp, url_prefix='/api/auth')
 
     # Exmo Exchange Blueprint
     from .exmo import bp as exmo_bp
-    app.register_blueprint(exmo_bp, url_prefix='/api/exmo/v1')
+    app.register_blueprint(exmo_bp, url_prefix='/api/trading/exmo/v1')
+
+    # Errors Blueprint
+    from.errors import bp as errors_bp
+    app.register_blueprint(errors_bp)
 
     return app
