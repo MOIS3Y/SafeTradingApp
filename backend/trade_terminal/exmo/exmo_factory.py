@@ -23,8 +23,10 @@ load_dotenv(os.path.join(basedir, '.env'))
 
 
 class ExmoAPI(object):
-    """Initializes the API requests to
-    the cryptocurrency stock exchange Exmo.me"""
+    """
+    Initializes the API requests to
+    the cryptocurrency stock exchange Exmo.me
+    """
 
     # API methods:
     commands = {
@@ -70,36 +72,49 @@ class ExmoAPI(object):
 
     def call_api(self, **kwargs):
         """API request"""
+        # Make request to exchange
         command = kwargs.pop('command')
         params = kwargs
+        general_uri = self.API_URL + self.API_VERSION + command
+
+        if self.commands[command]['authenticated']:
+            method_request = 'POST'
+            nonce = {'nonce': int(time.time()*1000)}
+            params.update(nonce)
+            params_str = urllib.parse.urlencode(params)
+            sign = self.sha512(params_str)
+            headers = {
+                "Content-type": "application/x-www-form-urlencoded",
+                "Key": self.API_KEY,
+                "Sign": sign,
+                }
+        else:
+            method_request = 'GET'
+            params_str = urllib.parse.urlencode(params)
+
         # Open session
         with requests.Session() as session:
-            # Method == POST
-            if self.commands[command]['authenticated']:
-                nonce = {'nonce': int(time.time()*1000)}
-                params.update(nonce)
-                params_str = urllib.parse.urlencode(params)
-                sign = self.sha512(params_str)
-                headers = {
-                    "Content-type": "application/x-www-form-urlencoded",
-                    "Key": self.API_KEY,
-                    "Sign": sign,
-                    }
-                url = session.post(
-                    self.API_URL + self.API_VERSION + command,
-                    data=params_str,
-                    headers=headers)
+            try:
+                if method_request == 'POST':
+                    exmo_request = session.post(
+                        general_uri,
+                        data=params_str,
+                        headers=headers)
+                if method_request == 'GET':
+                    exmo_request = session.get(
+                        general_uri + command + '?' + params_str)
+            except Exception as error:
+                exmo_request = {
+                    'result': False,
+                    'error': type(error).__name__
+                }
+                return exmo_request
+            finally:
                 session.close()
-            # Method == GET
-            else:
-                params_str = urllib.parse.urlencode(params)
-                url = session.get(
-                    self.API_URL + self.API_VERSION +
-                    command + '?' + params_str)
-                session.close()
+
         # Get response
         try:
-            response = json.loads(url.text)
+            response = json.loads(exmo_request.text)
             if 'error' in response and response['error']:
                 print(response['error'])
                 raise sys.exit()
