@@ -20,7 +20,7 @@ class Config(object):
     PRAETORIAN_CONFIRMATION_SUBJECT = os.environ.get(
         'PRAETORIAN_CONFIRMATION_SUBJECT')
     JWT_ACCESS_LIFESPAN = {'minutes': 10}  # ? GUARD token lifespan
-    JWT_REFRESH_LIFESPAN = {'days': 30}
+    # JWT_REFRESH_LIFESPAN = {'days': 30}
     # * Mail sender config
     MAIL_SERVER = os.environ.get('MAIL_SERVER')
     MAIL_PORT = int(os.environ.get('MAIL_PORT'))

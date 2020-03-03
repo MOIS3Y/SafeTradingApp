@@ -17,17 +17,18 @@ def create_database():
 @click.command(name='create_users')
 @with_appcontext
 def create_users():
-    one = User(username='One')
-    one.set_password('one')
-    print('Created: ', one.__repr__())
-    two = User(username='Two')
-    two.set_password('two')
-    print('Created: ', two.__repr__())
-    three = User(username='Three')
-    three.set_password('three')
-    print('Created: ', three.__repr__())
+    user = User(
+        username='livermore',
+        roles='trader')
+    user.set_password('jesse')
+    print('Created: ', user.__repr__())
+    admin = User(
+        username='administrator',
+        roles='admin, trader')
+    admin.set_password('admin')
+    print('Created: ', admin.__repr__())
 
-    db.session.add_all([one, two, three])
+    db.session.add_all([user, admin])
     db.session.commit()
 
 

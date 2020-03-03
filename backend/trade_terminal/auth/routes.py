@@ -1,12 +1,12 @@
 from flask import jsonify, request, url_for
-from flask_praetorian import auth_required, current_user
+from flask_praetorian import auth_required, roles_required, current_user
 from trade_terminal import db, guard
-from trade_terminal.auth import bp, User
+from trade_terminal.auth import bp, User, blacklist
 
 
 # ! Authentication routes
 
-@bp.route('/login', methods=['POST'])
+@bp.route('/user/login', methods=['POST'])
 def login():
     """
     Creates a temporary token for a registered user.
@@ -42,7 +42,7 @@ def login():
         }), 202
 
 
-@bp.route('/refresh', methods=['GET'])
+@bp.route('/token/refresh', methods=['GET'])
 def refresh():
     """
     Refreshes an existing JWT by creating a new one that is a copy of the old
@@ -70,7 +70,7 @@ def refresh():
 
 # ! Registration routes
 
-@bp.route('/registration', methods=['POST'])
+@bp.route('/user/registration', methods=['POST'])
 def register():
     """
     Registers a new user by parsing a POST request containing new user info and
@@ -132,7 +132,7 @@ def register():
         }), 201
 
 
-@bp.route('/finalize', methods=['GET'])
+@bp.route('/user/finalize', methods=['GET'])
 def finalize():
     """
     Finalizes a user registration with the token that they were issued in their
@@ -160,6 +160,36 @@ def finalize():
             'status_code': 202,
             'result': True,
             'access_token': user_token
+        }), 202
+
+
+# ! Admin routes
+
+
+@bp.route('/token/blacklist', methods=['POST'])
+@auth_required
+@roles_required('admin')
+def blacklist_token():
+    """
+    Blacklists an existing JWT by registering its jti claim in the blacklist.
+
+    A simple request example:
+    curl
+    -i
+    -X POST
+    -H "Content-Type: application/json"
+    -d '{"token":"<your_token>"}'
+    http://localhost:5000/api/auth/token/blacklist
+    """
+    lockable_token = request.get_json(force=True)
+    token_data = guard.extract_jwt_token(lockable_token['token'])
+    blacklist.add(token_data['jti'])
+
+    return jsonify(
+        {
+            'status_code': 202,
+            'result': True,
+            'message': 'token blacklisted ({})'.format(lockable_token['token'])
         }), 202
 
 

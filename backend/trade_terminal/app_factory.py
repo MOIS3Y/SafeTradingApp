@@ -14,11 +14,11 @@ def create_app():  # ! OR Config for production
 
     # *Init extensions
     from trade_terminal import db, migrate, ma, guard, mail
-    from trade_terminal.auth import User
+    from trade_terminal.auth import User, is_blacklisted
     db.init_app(app)
     migrate.init_app(app, db)
     ma.init_app(app)
-    guard.init_app(app, User)
+    guard.init_app(app, User, is_blacklisted=is_blacklisted)
     mail.init_app(app)
 
     # *Add click commands
