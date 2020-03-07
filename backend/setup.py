@@ -1,7 +1,7 @@
 from trade_terminal import guard
 from trade_terminal import create_app
 from trade_terminal import db, ma
-from trade_terminal import TradeProfile, Exchange
+from trade_terminal import TradeProfile, TradeSettings, Exchange
 from trade_terminal.auth import User
 from trade_terminal.exmo import ExmoCurrency, ExmoPair, ExmoOrder
 
@@ -26,6 +26,7 @@ def make_shell_context():
         'ma': ma,
         'User': User,
         'TradeProfile': TradeProfile,
+        'TradeSettings': TradeSettings,
         'Exchange': Exchange,
         'ExmoCurrency': ExmoCurrency,
         'ExmoPair': ExmoPair,
