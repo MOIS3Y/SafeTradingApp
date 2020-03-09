@@ -1,17 +1,8 @@
 from datetime import datetime
 
-from trade_terminal import db, TradeProfile
+from trade_terminal import db, ma
+from trade_terminal.settings import TradeProfile
 from trade_terminal.exmo import ExmoAPI
-
-
-class ExmoCurrency(db.Model):
-    """docstring for Currency"""
-    id = db.Column(db.Integer, primary_key=True)
-    exchange_id = db.Column(db.Integer, db.ForeignKey('exchange.id'))
-    ticker = db.Column(db.String(24))
-
-    def __repr__(self):
-        return '<Currency {}>'.format(self.ticker)
 
 
 class ExmoPair(db.Model):
@@ -104,6 +95,11 @@ class ExmoOrderTrades(db.Model):
     quantity = db.Column(db.Float)  # quantity per transaction
     price = db.Column(db.Float)  # transaction price
     amount = db.Column(db.Float)  # transaction amount
+
+
+class ExmoPairSchema(ma.ModelSchema):
+    class Meta:
+        model = ExmoPair
 
 
 # class Deal(db.Model):

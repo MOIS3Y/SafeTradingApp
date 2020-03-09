@@ -3,9 +3,9 @@ import click
 from flask.cli import with_appcontext
 
 from trade_terminal import db
-from trade_terminal import TradeProfile, Exchange
+from trade_terminal.settings import TradeProfile, Exchange
 from trade_terminal.auth import User
-from trade_terminal.exmo import ExmoPair
+# from trade_terminal.exmo import ExmoPair
 
 
 @click.command(name='create_database')
@@ -40,7 +40,7 @@ def create_exchanges():
     binance = Exchange(name='Binance')
     print('Created: ', binance.__repr__())
 
-    db.session.add(exmo)
+    db.session.add_all([exmo, binance])
     db.session.commit()
 
 
@@ -65,16 +65,16 @@ def create_trade_profiles():
     db.session.commit()
 
 
-@click.command(name='create_pairs')
-@with_appcontext
-def create_pairs():
-    eth_rub = ExmoPair(exchange_id=1, ticker='ETH_RUB')
-    print('Created: ', eth_rub.__repr__())
-    btc_rub = ExmoPair(exchange_id=1, ticker='BTC_RUB')
-    print('Created: ', btc_rub.__repr__())
+# @click.command(name='create_pairs')
+# @with_appcontext
+# def create_pairs():
+#     eth_rub = ExmoPair(exchange_id=1, ticker='ETH_RUB')
+#     print('Created: ', eth_rub.__repr__())
+#     btc_rub = ExmoPair(exchange_id=1, ticker='BTC_RUB')
+#     print('Created: ', btc_rub.__repr__())
 
-    db.session.add_all([eth_rub, btc_rub])
-    db.session.commit()
+#     db.session.add_all([eth_rub, btc_rub])
+#     db.session.commit()
 
 
 if __name__ == "__main__":

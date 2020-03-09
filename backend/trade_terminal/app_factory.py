@@ -15,6 +15,7 @@ def create_app():  # ! OR Config for production
     # *Init extensions
     from trade_terminal import db, migrate, ma, guard, mail
     from trade_terminal.auth import User, is_blacklisted
+
     db.init_app(app)
     migrate.init_app(app, db)
     ma.init_app(app)
@@ -25,16 +26,18 @@ def create_app():  # ! OR Config for production
     from commands import (
         create_exchanges,
         create_trade_profiles,
-        create_users,
-        create_pairs)
+        create_users)
     app.cli.add_command(create_users)
     app.cli.add_command(create_exchanges)
-    app.cli.add_command(create_pairs)
     app.cli.add_command(create_trade_profiles)
 
     # Auth Blueprint
     from .auth import bp as auth_bp
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
+
+    # Settings Blueprint
+    from .settings import bp as settings_bp
+    app.register_blueprint(settings_bp, url_prefix='/api/settings')
 
     # Exmo Exchange Blueprint
     from .exmo import bp as exmo_bp

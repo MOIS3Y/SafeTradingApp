@@ -1,4 +1,4 @@
-from trade_terminal import db
+from trade_terminal import db, ma
 from trade_terminal import guard
 
 
@@ -45,3 +45,16 @@ class User(db.Model):
 
     def __repr__(self):
         return '<User: {}>'.format(self.username)
+
+
+class UserSchema(ma.ModelSchema):
+    class Meta:
+        model = User
+
+    # id = ma.auto_field()
+    # username = ma.auto_field()
+    # password = ma.auto_field()
+    # email = ma.auto_field()
+    # roles = ma.auto_field()
+    # is_active = ma.auto_field()
+    # trade_profiles = ma.auto_field()
