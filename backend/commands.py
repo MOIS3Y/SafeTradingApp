@@ -3,7 +3,7 @@ import click
 from flask.cli import with_appcontext
 
 from trade_terminal import db
-from trade_terminal.settings import TradeProfile, Exchange
+from trade_terminal.settings import TradeProfile, Currency, Exchange
 from trade_terminal.auth import User
 # from trade_terminal.exmo import ExmoPair
 
@@ -59,10 +59,24 @@ def create_trade_profiles():
         name='TestAcc',
         secret_key=secret_key,
         public_key=public_key)
-    print('Created: ', first.__repr__())
 
     db.session.add(first)
     db.session.commit()
+    print('Created: ', first.__repr__())
+
+
+@click.command(name='create_currencies')
+@with_appcontext
+def create_currencies():
+    currencies_list = ['BTC', 'ETH', 'RUB', 'USD']
+    exchanges_list = Exchange.query.all()
+    for currency in currencies_list:
+        add_currency = Currency(ticker=currency)
+        for exchange in exchanges_list:
+            add_currency.exchanges.append(exchange)
+        db.session.add(add_currency)
+        db.session.commit()
+        print('Created: ', add_currency.__repr__())
 
 
 # @click.command(name='create_pairs')

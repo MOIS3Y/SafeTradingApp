@@ -3,14 +3,14 @@
 __author__ = 'MOIS3Y'
 
 
-def create_app():  # ! OR Config for production
+def create_app():
 
     # *Create Flask app
     from flask import Flask
     app = Flask(__name__)
 
     from config import Config, DevelopmentConfig  # noqa: F401
-    app.config.from_object(DevelopmentConfig)
+    app.config.from_object(DevelopmentConfig)    # ! OR Config for production
 
     # *Init extensions
     from trade_terminal import db, migrate, ma, guard, mail
@@ -26,10 +26,12 @@ def create_app():  # ! OR Config for production
     from commands import (
         create_exchanges,
         create_trade_profiles,
-        create_users)
+        create_users,
+        create_currencies)
     app.cli.add_command(create_users)
     app.cli.add_command(create_exchanges)
     app.cli.add_command(create_trade_profiles)
+    app.cli.add_command(create_currencies)
 
     # Auth Blueprint
     from .auth import bp as auth_bp

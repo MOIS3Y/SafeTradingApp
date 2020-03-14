@@ -37,7 +37,7 @@ def login():
     return jsonify(
         {
             'status_code': 202,
-            'result': True,
+            'error': '',
             'access_token': user_token
         }), 202
 
@@ -63,7 +63,7 @@ def refresh():
     return jsonify(
         {
             'status_code': 202,
-            'result': True,
+            'error': '',
             'access_token': new_token
         }), 200
 
@@ -126,7 +126,7 @@ def register():
     return jsonify(
         {
             'status_code': 201,
-            'result': True,
+            'error': '',
             'message': 'Successfully sent registration email to {}'.format(
                 new_user.username)
         }), 201
@@ -158,7 +158,7 @@ def finalize():
     return jsonify(
         {
             'status_code': 202,
-            'result': True,
+            'error': '',
             'access_token': user_token
         }), 202
 
@@ -188,7 +188,7 @@ def blacklist_token():
     return jsonify(
         {
             'status_code': 202,
-            'result': True,
+            'error': '',
             'message': 'token blacklisted ({})'.format(lockable_token['token'])
         }), 202
 

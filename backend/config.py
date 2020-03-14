@@ -35,4 +35,4 @@ class Config(object):
 class DevelopmentConfig(Config):
     DEBUG = True
     SEND_FILE_MAX_AGE_DEFAULT = 0  # ? disable static file cache JS CSS
-    JSON_SORT_KEYS = False
+    # JSON_SORT_KEYS = False

@@ -2,6 +2,7 @@ from datetime import datetime
 from trade_terminal import db, ma
 
 
+# * Many to many relationship Currency with Exchange models
 currencies = db.Table(
     'currencies',
     db.Column(
@@ -23,17 +24,10 @@ class Exchange(db.Model):
 
     # ! Relationship
 
-    trade_profiles = db.relationship(
-        'TradeProfile', backref='exchange', lazy=True)
-
     currencies = db.relationship(
         'Currency',
         secondary=currencies,
         backref=db.backref('exchanges', lazy=True))
-
-    # * Exmo:
-    # exmo_pairs = db.relationship(
-    #     'ExmoPair', backref='exchange', lazy=True)
 
     def __repr__(self):
         return '<Exchange {}>'.format(self.name)
@@ -54,7 +48,7 @@ class TradeProfile(db.Model):
     user_id = db.Column(
         db.Integer, db.ForeignKey('user.id'), nullable=False)
     exchange_id = db.Column(
-        db.Integer, db.ForeignKey('exchange.id'), nullable=False)
+        db.Integer, db.ForeignKey('exchange.id'))
 
     name = db.Column(db.String(12))
     secret_key = db.Column(db.String(128))
@@ -62,12 +56,10 @@ class TradeProfile(db.Model):
 
     # ! Relationship
 
-    trade_settings = db.relationship(
-        'TradeSettings', backref='trade_profile', lazy=True)
-
-    # * Exmo:
-    # exmo_orders = db.relationship(
-    #     'ExmoOrder', backref='trade_profile', lazy=True)
+    user = db.relationship(
+        'User', backref='trade_profiles', lazy=True)
+    exchange = db.relationship(
+        'Exchange', backref='trade_profiles', lazy=True)
 
     def __repr__(self):
         return '<Name: {}>'.format(self.name)
@@ -77,16 +69,21 @@ class TradeSettings(db.Model):
     """docstring for TradeSettings"""
     id = db.Column(db.Integer, primary_key=True)
     trade_profile_id = db.Column(
-        db.Integer, db.ForeignKey('trade_profile.id'), nullable=False)
+        db.Integer, db.ForeignKey('trade_profile.id'))
 
-    ticker = db.Column(db.String(12), nullable=False)
-    trade_deposit = db.Column(db.Float, nullable=False)
-    risk_profit_ratio = db.Column(db.Integer, nullable=False, default=3)
-    risk_one_day = db.Column(db.Integer, nullable=False, default=1)
-    stop_loss_default = db.Column(db.Float, nullable=False, default=0.5)
+    ticker = db.Column(db.String(12))
+    trade_deposit = db.Column(db.Float)
+    risk_profit_ratio = db.Column(db.Integer, default=3)
+    risk_one_day = db.Column(db.Integer, default=1)
+    stop_loss_default = db.Column(db.Float, default=0.5)
 
-    set_blocked = db.Column(db.Boolean, nullable=False, default=False)
+    set_blocked = db.Column(db.Boolean, default=False)
     last_update = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # ! Relationship
+
+    trade_profile = db.relationship(
+        'TradeProfile', backref='trade_settings', lazy=True)
 
     def get_ticker(self, ticker):
         for currency in self.trade_profile.exchange.currencies:
@@ -96,17 +93,41 @@ class TradeSettings(db.Model):
     def set_trade_deposit(self, balance, procent):
         self.trade_deposit = balance / 100 * procent
         self. set_blocked = True
-        self.last_update = datetime.utcnow
+        # self.last_update = datetime.utcnow  #!Error
 
     def __repr__(self):
         return '<TradeSettings for : {}>'.format(self.trade_profile.name)
 
 
-class TradeProfileSchema(ma.ModelSchema):
+class CurrencySchema(ma.ModelSchema):
     class Meta:
-        model = TradeProfile
+        model = Currency
+
+
+class ExchangeSchema(ma.ModelSchema):
+    currencies = ma.Nested(CurrencySchema, many=True)
+
+    class Meta:
+        model = Exchange
 
 
 class TradeSettingsSchema(ma.ModelSchema):
     class Meta:
         model = TradeSettings
+
+
+class TradeProfileSchema(ma.SQLAlchemySchema):
+    trade_settings = ma.Nested(TradeSettingsSchema, many=True)
+    exchange = ma.Nested(ExchangeSchema)
+
+    class Meta:
+        model = TradeProfile
+        exclude = [
+            'exchange.currencies',
+            'exchange.trade_profiles',
+            'trade_settings.trade_profile'
+        ]
+
+    id = ma.auto_field()
+    name = ma.auto_field()
+    public_key = ma.auto_field()
