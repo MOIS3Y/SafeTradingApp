@@ -27,10 +27,10 @@ def trade_profile():
         # * Checking the required parameters from the user
         if trade_profile and trade_profile.keys() == {
                 'name', 'exchange', 'secret_key', 'public_key'}:
+
             # * Get current Exchange
             current_exchange = Exchange.query.filter_by(
                 name=trade_profile['exchange']).first()
-            # * Check Exchange
             if current_exchange:
                 # * Create new TradeProfile
                 new_trade_profile = TradeProfile(
@@ -50,7 +50,30 @@ def trade_profile():
 
         if trade_settings:
             pass
-        abort(400)
+
+    if request.method == 'PUT':
+        # * Checking the required parameters from the user
+        if trade_profile and trade_profile.keys() == {
+                'old_name', 'new_name',
+                'exchange', 'secret_key', 'public_key'}:
+            # * Get current Exchange
+            current_exchange = Exchange.query.filter_by(
+                name=trade_profile['exchange']).first()
+            # * Get current TradeProfile
+            current_trade_profile = TradeProfile.query.filter_by(
+                name=trade_profile['old_name'],
+                user=user).first()
+            if current_trade_profile and current_exchange:
+                current_trade_profile.name = trade_profile['new_name']
+                current_trade_profile.exchange = current_exchange
+                current_trade_profile.secret_key = trade_profile['secret_key']
+                current_trade_profile.public_key = trade_profile['public_key']
+                db.session.commit()
+                response = TradeProfileSchema().dump(current_trade_profile)
+                return jsonify(
+                        status_code=200,
+                        error='',
+                        update=response), 200
 
     if request.method == 'DELETE':
         if trade_profile and 'name' in trade_profile:
@@ -67,4 +90,5 @@ def trade_profile():
 
         if trade_settings:
             pass
-        abort(400)
+
+    abort(400)
