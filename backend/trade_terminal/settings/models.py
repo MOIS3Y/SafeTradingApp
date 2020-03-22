@@ -70,12 +70,13 @@ class TradeSettings(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     trade_profile_id = db.Column(
         db.Integer, db.ForeignKey('trade_profile.id'))
+    currency_id = db.Column(
+        db.Integer, db.ForeignKey('currency.id'))
 
     ticker = db.Column(db.String(12))
     trade_deposit = db.Column(db.Float)
     risk_profit_ratio = db.Column(db.Integer, default=3)
     risk_one_day = db.Column(db.Integer, default=1)
-    stop_loss_default = db.Column(db.Float, default=0.5)
 
     set_blocked = db.Column(db.Boolean, default=False)
     last_update = db.Column(db.DateTime, default=datetime.utcnow)
@@ -84,19 +85,16 @@ class TradeSettings(db.Model):
 
     trade_profile = db.relationship(
         'TradeProfile', backref='trade_settings', lazy=True)
-
-    def get_ticker(self, ticker):
-        for currency in self.trade_profile.exchange.currencies:
-            if currency.ticker == ticker:
-                self.ticker = currency.ticker
+    currency = db.relationship('Currency', lazy=True)
 
     def set_trade_deposit(self, balance, procent):
         self.trade_deposit = balance / 100 * procent
         self. set_blocked = True
-        # self.last_update = datetime.utcnow  #!Error
+        self.last_update = datetime.utcnow()
 
     def __repr__(self):
-        return '<TradeSettings for : {}>'.format(self.trade_profile.name)
+        return '<TradeSettings: {} for {}>'.format(
+            self.trade_profile.name, self.currency.ticker)
 
 
 class CurrencySchema(ma.ModelSchema):

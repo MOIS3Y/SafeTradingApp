@@ -95,7 +95,7 @@ def register():
             {
                 'status_code': 400,
                 'error': 'MissingRequiredFields',
-                'message': 'Check for required fields (user, password, email)'
+                'message': 'Check for required fields'
             }), 400
     check_user = User.query.filter_by(username=username).first()
     check_email = User.query.filter_by(email=email).first()
