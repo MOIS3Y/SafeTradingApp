@@ -75,8 +75,7 @@ class TradeSettings(db.Model):
 
     ticker = db.Column(db.String(12))
     trade_deposit = db.Column(db.Float)
-    risk_profit_ratio = db.Column(db.Integer, default=3)
-    risk_one_day = db.Column(db.Integer, default=1)
+    risk_one_deal = db.Column(db.Float)
 
     set_blocked = db.Column(db.Boolean, default=False)
     last_update = db.Column(db.DateTime, default=datetime.utcnow)
@@ -87,8 +86,13 @@ class TradeSettings(db.Model):
         'TradeProfile', backref='trade_settings', lazy=True)
     currency = db.relationship('Currency', lazy=True)
 
-    def set_trade_deposit(self, balance, procent):
-        self.trade_deposit = balance / 100 * procent
+    def set_trading_parameters(
+            self, deposit, procent_deposit=70, procent_risk=1):
+
+        self.trade_deposit = round(deposit / 100 * procent_deposit, 8)
+        self.risk_one_deal = round(
+            self.trade_deposit * procent_risk / 100 / 3, 8)
+        # * Block updating trading parameters to the new month
         self. set_blocked = True
         self.last_update = datetime.utcnow()
 

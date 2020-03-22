@@ -224,48 +224,89 @@ def create_trade_settings(name=None):
 
     # * Checking the required parameters from the user
     if not name:
-        return 'lost name in request'
+        uri = url_for(
+            'settings.create_trade_settings', _external=True)
+        message = "Missing name in URI: {}NAME".format(uri)
+        return jsonify(
+            status_code=400,
+            error='MissingName',
+            message=message), 400
+
     if not settings_fields or type(settings_fields) != dict:
-        return 'empty request or request bad format'
-    if 'ticker' not in settings_fields or \
-            'deposit' not in settings_fields or \
-            'procent_deposit' not in settings_fields:
-        return 'bad request, lost require field'
+        abort(400)
+
+    if 'ticker' not in settings_fields or 'deposit' not in settings_fields:
+        return jsonify(
+            status_code=400,
+            error='MissingRequiredFields',
+            message='Check for required fields'), 400
+
     for key, value in settings_fields.items():
         if key == 'ticker':
             if type(value) != str:
-                return 'type ticker must be a str'
+                return jsonify(
+                    status_code=400,
+                    error='TypeError',
+                    message='Type fields {} must be a string'.format(key)), 400
         else:
             if type(value) not in [int, float] or value == 0:
-                return 'fields must be a int or float and not equal 0'
+                return jsonify(
+                    status_code=400,
+                    error='TypeError',
+                    message="{} must be a int or float and not equal 0".format(
+                        key)), 400
 
     # * Checking TradeProfile and support ticker
+    ticker = settings_fields.get('ticker').upper()
     current_trade_profile = TradeProfile.query.filter_by(
         name=name, user=user).first()
+
     if current_trade_profile:
-        current_currency = Currency.query.filter_by(
-            ticker=settings_fields['ticker'].upper()).first()
+        current_currency = Currency.query.filter_by(ticker=ticker).first()
+        # TODO: fix me! current_currency may be None!!!
         if current_currency not in current_trade_profile.exchange.currencies:
-            return 'exchange does not support trading for this ticker'
+            return jsonify(
+                status_code=400,
+                error='NotSupportedCurrency',
+                message='Exchange does not support trading for {}'.format(
+                    settings_fields['ticker'])), 400
+        for trade_settings in current_trade_profile.trade_settings:
+            if ticker == trade_settings.currency.ticker:
+                return jsonify(
+                    status_code=409,
+                    error='ConflictTradeSettings',
+                    message='Trade Settings: already in use for {}'.format(
+                        ticker)), 409
+
     if not current_trade_profile:
-        return 'trade profile not found'
+        response = 'Check input name: {}, and try again'.format(name)
+        return jsonify(
+            status_code=200,
+            error='NotFoundTradeProfile',
+            message=response), 200
 
     # * Create new TradeSettings
     new_trade_settings = TradeSettings(
         currency=current_currency,
         trade_profile=current_trade_profile,
-        ticker=settings_fields['ticker'])
-    new_trade_settings.set_trade_deposit(
-        settings_fields['deposit'],
-        settings_fields['procent_deposit'])
+        ticker=ticker)
 
     # * Customize standart parameters of TradeSettings
-    risk_profit_ratio = settings_fields.get('risk_profit_ratio', None)
-    risk_one_day = settings_fields.get('risk_one_day', None)
-    if risk_profit_ratio:
-        new_trade_settings.risk_profit_ratio = risk_profit_ratio
-    if risk_one_day:
-        new_trade_settings.risk_one_day = risk_one_day
+    deposit = settings_fields.get('deposit')
+    procent_deposit = settings_fields.get('procent_deposit', None)
+    procent_risk = settings_fields.get('procent_risk', None)
+
+    if not procent_deposit and not procent_risk:
+        new_trade_settings.set_trading_parameters(deposit)
+    if procent_deposit and procent_risk:
+        new_trade_settings.set_trading_parameters(
+            deposit, procent_deposit, procent_risk)
+    if procent_deposit:
+        new_trade_settings.set_trading_parameters(
+            deposit, procent_deposit)
+    if procent_risk:
+        new_trade_settings.set_trading_parameters(
+            deposit, procent_risk=procent_risk)
 
     db.session.add(new_trade_settings)
     db.session.commit()

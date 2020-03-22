@@ -35,9 +35,9 @@ def create_users():
 @click.command(name='create_exchanges')
 @with_appcontext
 def create_exchanges():
-    exmo = Exchange(name='Exmo')
+    exmo = Exchange(name='EXMO')
     print('Created: ', exmo.__repr__())
-    binance = Exchange(name='Binance')
+    binance = Exchange(name='BINANCE')
     print('Created: ', binance.__repr__())
 
     db.session.add_all([exmo, binance])
