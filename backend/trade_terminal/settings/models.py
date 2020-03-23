@@ -1,4 +1,5 @@
 from datetime import datetime
+from flask_marshmallow.fields import AbsoluteURLFor
 from trade_terminal import db, ma
 
 
@@ -51,6 +52,7 @@ class TradeProfile(db.Model):
         db.Integer, db.ForeignKey('exchange.id'))
 
     name = db.Column(db.String(12))
+    exchange_name = db.Column(db.String(12))
     secret_key = db.Column(db.String(128))
     public_key = db.Column(db.String(128))
 
@@ -73,7 +75,7 @@ class TradeSettings(db.Model):
     currency_id = db.Column(
         db.Integer, db.ForeignKey('currency.id'))
 
-    ticker = db.Column(db.String(12))
+    currency_ticker = db.Column(db.String(12))
     trade_deposit = db.Column(db.Float)
     risk_one_deal = db.Column(db.Float)
 
@@ -107,29 +109,39 @@ class CurrencySchema(ma.ModelSchema):
 
 
 class ExchangeSchema(ma.ModelSchema):
-    currencies = ma.Nested(CurrencySchema, many=True)
+    # currencies = ma.Nested(CurrencySchema, many=True)
 
     class Meta:
         model = Exchange
+    # name = ma.auto_field()
 
 
 class TradeSettingsSchema(ma.ModelSchema):
     class Meta:
         model = TradeSettings
+        exclude = ['id', 'currency', 'trade_profile']
 
 
 class TradeProfileSchema(ma.SQLAlchemySchema):
-    trade_settings = ma.Nested(TradeSettingsSchema, many=True)
-    exchange = ma.Nested(ExchangeSchema)
+    trade_settings = ma.Nested(
+        TradeSettingsSchema, many=True, exclude=[
+            'id', 'currency', 'trade_profile'])
 
     class Meta:
         model = TradeProfile
-        exclude = [
-            'exchange.currencies',
-            'exchange.trade_profiles',
-            'trade_settings.trade_profile'
-        ]
+        # include_fk = True
+        # exclude = [
+        #     'exchange.currencies',
+        #     'exchange.trade_profiles',
+        #     'trade_settings.trade_profile'
+        # ]
 
-    id = ma.auto_field()
+    uri = AbsoluteURLFor('settings.show_trade_profile', name='<name>')
     name = ma.auto_field()
+    exchange = ma.auto_field('exchange_name')
     public_key = ma.auto_field()
+    secret_key = ma.auto_field()
+    # exchange = ma.HyperlinkRelated(
+    #     'settings.show_trade_profile',
+    #     url_key='exchange.name',
+    #     external=True)

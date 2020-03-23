@@ -96,6 +96,7 @@ def create_trade_profile(name=None):
         user=user,
         exchange=current_exchange,
         name=name,
+        exchange_name=current_exchange.name,
         public_key=profile_fields['public_key'],
         secret_key=profile_fields['secret_key'],
     )
@@ -289,7 +290,7 @@ def create_trade_settings(name=None):
     new_trade_settings = TradeSettings(
         currency=current_currency,
         trade_profile=current_trade_profile,
-        ticker=ticker)
+        currency_ticker=ticker)
 
     # * Customize standart parameters of TradeSettings
     deposit = settings_fields.get('deposit')

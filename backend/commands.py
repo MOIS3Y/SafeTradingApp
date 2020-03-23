@@ -57,6 +57,7 @@ def create_trade_profiles():
         user_id=1,
         exchange_id=1,
         name='TestAcc',
+        exchange_name='EXMO',
         secret_key=secret_key,
         public_key=public_key)
 
