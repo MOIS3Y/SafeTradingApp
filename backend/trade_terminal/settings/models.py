@@ -1,5 +1,5 @@
 from datetime import datetime
-from flask_marshmallow.fields import AbsoluteURLFor
+from flask_marshmallow.fields import AbsoluteURLFor, fields
 from trade_terminal import db, ma
 
 
@@ -108,7 +108,7 @@ class CurrencySchema(ma.ModelSchema):
         model = Currency
 
 
-class ExchangeSchema(ma.ModelSchema):
+class ExchangeSchema(ma.SQLAlchemySchema):
     # currencies = ma.Nested(CurrencySchema, many=True)
 
     class Meta:
@@ -117,6 +117,7 @@ class ExchangeSchema(ma.ModelSchema):
 
 
 class TradeSettingsSchema(ma.ModelSchema):
+
     class Meta:
         model = TradeSettings
         exclude = ['id', 'currency', 'trade_profile']
@@ -138,9 +139,18 @@ class TradeProfileSchema(ma.SQLAlchemySchema):
 
     uri = AbsoluteURLFor('settings.show_trade_profile', name='<name>')
     name = ma.auto_field()
-    exchange = ma.auto_field('exchange_name')
     public_key = ma.auto_field()
-    secret_key = ma.auto_field()
+    secret_key = fields.Method(serialize='_hide_secret_key')
+    exchange = fields.Method(serialize='_change_exchange_id_to_name')
+
+    def _change_exchange_id_to_name(self, model):
+        return model.exchange.name
+
+    def _hide_secret_key(self, model):
+        last_symbols = len(model.secret_key) - 2
+        hide = model.secret_key[0:4] + '***' + model.secret_key[last_symbols:]
+        return hide
+
     # exchange = ma.HyperlinkRelated(
     #     'settings.show_trade_profile',
     #     url_key='exchange.name',
