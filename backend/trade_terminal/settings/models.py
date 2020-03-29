@@ -116,17 +116,29 @@ class ExchangeSchema(ma.SQLAlchemySchema):
     # name = ma.auto_field()
 
 
-class TradeSettingsSchema(ma.ModelSchema):
+class TradeSettingsSchema(ma.SQLAlchemySchema):
 
     class Meta:
         model = TradeSettings
-        exclude = ['id', 'currency', 'trade_profile']
+
+    currency = fields.Method(serialize='_change_currency_id_to_name')
+    last_update = fields.Method(serialize='_change_last_update_to_timestump')
+    risk_one_deal = ma.auto_field()
+    set_blocked = ma.auto_field()
+    trade_deposit = ma.auto_field()
+
+    def _change_currency_id_to_name(self, model):
+        return model.currency.ticker
+
+    def _change_last_update_to_timestump(self, model):
+        convert = round(model.last_update.timestamp())
+        return convert
 
 
 class TradeProfileSchema(ma.SQLAlchemySchema):
-    trade_settings = ma.Nested(
-        TradeSettingsSchema, many=True, exclude=[
-            'id', 'currency', 'trade_profile'])
+    # trade_settings = ma.Nested(
+    #     TradeSettingsSchema, many=True, exclude=[
+    #         'id', 'currency', 'trade_profile'])
 
     class Meta:
         model = TradeProfile
@@ -142,6 +154,7 @@ class TradeProfileSchema(ma.SQLAlchemySchema):
     public_key = ma.auto_field()
     secret_key = fields.Method(serialize='_hide_secret_key')
     exchange = fields.Method(serialize='_change_exchange_id_to_name')
+    trade_settings = fields.Method(serialize='_beautify_trade_settings')
 
     def _change_exchange_id_to_name(self, model):
         return model.exchange.name
@@ -151,6 +164,8 @@ class TradeProfileSchema(ma.SQLAlchemySchema):
         hide = model.secret_key[0:4] + '***' + model.secret_key[last_symbols:]
         return hide
 
+    def _beautify_trade_settings(self, model):
+        return TradeSettingsSchema().dump(model.trade_settings, many=True)
     # exchange = ma.HyperlinkRelated(
     #     'settings.show_trade_profile',
     #     url_key='exchange.name',
