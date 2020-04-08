@@ -217,74 +217,73 @@ def delete_trade_profile(name=None):
 
 @bp.route('trade_settings/create/', methods=['POST'])
 @bp.route('trade_settings/create/<name>', methods=['POST'])
+@bp.route('trade_settings/create/<name>/<ticker>', methods=['POST'])
 @auth_required
-def create_trade_settings(name=None):
+def create_trade_settings(name=None, ticker=None):
 
     user = current_user()
     settings_fields = request.get_json(force=True)
 
     # * Checking the required parameters from the user
-    if not name:
+    if not name or not ticker:
         uri = url_for(
             'settings.create_trade_settings', _external=True)
-        message = "Missing name in URI: {}NAME".format(uri)
+        message = "Missing name or ticker in URI: {}NAME/TICKER".format(uri)
         return jsonify(
             status_code=400,
-            error='MissingName',
+            error='BadRequest',
             message=message), 400
+
+    if ticker.isdigit():
+        return jsonify(
+            status_code=400,
+            error='TypeError',
+            message='Type ticker {} must be a string'.format(ticker)), 400
 
     if not settings_fields or type(settings_fields) != dict:
         abort(400)
 
-    if 'ticker' not in settings_fields or 'deposit' not in settings_fields:
+    if 'deposit' not in settings_fields:
         return jsonify(
             status_code=400,
             error='MissingRequiredFields',
             message='Check for required fields'), 400
 
     for key, value in settings_fields.items():
-        if key == 'ticker':
-            if type(value) != str:
-                return jsonify(
-                    status_code=400,
-                    error='TypeError',
-                    message='Type fields {} must be a string'.format(key)), 400
-        else:
-            if type(value) not in [int, float] or value == 0:
-                return jsonify(
-                    status_code=400,
-                    error='TypeError',
-                    message="{} must be a int or float and not equal 0".format(
-                        key)), 400
-
-    # * Checking TradeProfile and support ticker
-    ticker = settings_fields.get('ticker').upper()
-    current_trade_profile = TradeProfile.query.filter_by(
-        name=name, user=user).first()
-
-    if current_trade_profile:
-        current_currency = Currency.query.filter_by(ticker=ticker).first()
-        # TODO: fix me! current_currency may be None!!!
-        if current_currency not in current_trade_profile.exchange.currencies:
+        if type(value) not in [int, float] or value == 0:
             return jsonify(
                 status_code=400,
-                error='NotSupportedCurrency',
-                message='Exchange does not support trading for {}'.format(
-                    settings_fields['ticker'])), 400
-        for trade_settings in current_trade_profile.trade_settings:
-            if ticker == trade_settings.currency.ticker:
-                return jsonify(
-                    status_code=409,
-                    error='ConflictTradeSettings',
-                    message='Trade Settings: already in use for {}'.format(
-                        ticker)), 409
+                error='TypeError',
+                message="{} must be a int or float and not equal 0".format(
+                    key)), 400
+
+    # * Checking TradeProfile and support ticker
+    current_trade_profile = TradeProfile.query.filter_by(
+        name=name, user=user).first()
 
     if not current_trade_profile:
         response = 'Check input name: {}, and try again'.format(name)
         return jsonify(
             status_code=200,
-            error='NotFoundTradeProfile',
-            message=response), 200
+            error='NotFound',
+            message=response), 404
+
+    ticker = ticker.upper()
+    current_currency = Currency.query.filter_by(ticker=ticker).first()
+    if not current_currency or current_currency not in \
+            current_trade_profile.exchange.currencies:
+        return jsonify(
+            status_code=400,
+            error='NotSupportedCurrency',
+            message='Exchange does not support trading for {}'.format(
+                ticker)), 400
+    for trade_settings in current_trade_profile.trade_settings:
+        if ticker == trade_settings.currency.ticker:
+            return jsonify(
+                status_code=409,
+                error='ConflictTradeSettings',
+                message='Trade Settings: already in use for {}'.format(
+                    ticker)), 409
 
     # * Create new TradeSettings
     new_trade_settings = TradeSettings(
